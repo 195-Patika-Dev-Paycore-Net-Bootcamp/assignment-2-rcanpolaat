@@ -18,7 +18,7 @@ namespace StaffApplication.Controllers
                  DateOfBirth = new DateTime(1998, 8, 3),
                  Email = "rcanpolaat@gmail.com",
                  PhoneNumber = 5656565456,
-                 Salary = 13500
+                 Salary = 8500
             },
 
             new Staff // new object added to the list
@@ -29,7 +29,7 @@ namespace StaffApplication.Controllers
                 DateOfBirth = new DateTime(2002, 1, 1),
                 Email = "ocapolat@gmail.com",
                 PhoneNumber = 5656385456,
-                Salary = 10500
+                Salary = 6500
             }
         };
 
@@ -51,12 +51,20 @@ namespace StaffApplication.Controllers
         [HttpPost] //post method is used to add a new element
         public IActionResult AddStaff([FromBody] Staff newStaff)
         {
-            var staff = StaffList.SingleOrDefault(x => x.Id == newStaff.Id);
-            if (staff is not null)
-                return BadRequest();
+            StaffValidator staffvalidation = new StaffValidator();
+            ValidationResult result = staffvalidation.Validate(newStaff); //submits the new element for validation
+            if (result.IsValid) //checks the correctness of the added element in validation
+            {
+                StaffList.Add(newStaff); //add to the list if they comply with the conditions in the validation
+                return Ok(newStaff);
+            }
+            else
+            {
+                foreach (var item in result.Errors)
+                    ModelState.AddModelError(item.PropertyName, item.ErrorMessage);
 
-            StaffList.Add(newStaff);
-            return Ok();
+                return BadRequest(ModelState);
+            }
         }
 
         [HttpPut] //Existing element details can be changed with put method
